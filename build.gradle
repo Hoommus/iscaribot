@@ -1,0 +1,63 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.plugin-shadow' version '2.0.2'
+}
+
+version = ""
+
+//def jdaVersion = '3.5.1_345'
+def jdaVersion = '3.5.0_330'
+
+mainClassName = 'ChickpeaBot'
+def actualProjectName = 'IscariBot'
+
+sourceCompatibility = 9
+targetCompatibility = 9
+compileJava.options.encoding = 'UTF-8'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+//    compile "org.projectlombok:lombok:1.16.18"
+    compile 'org.apache.logging.log4j:log4j-api:2.10.0'
+    compile 'org.apache.logging.log4j:log4j-core:2.10.0'
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile("org.junit.jupiter:junit-jupiter-api:5.1.0")
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.1.0")
+
+//  compile 'commons-io:commons-io:2.6'
+    compile 'org.apache.commons:commons-lang3:3.7'
+    compile 'org.mongodb:mongodb-driver:3.6.0'
+    compile 'com.google.code.gson:gson:2.8.1'
+    compile 'com.sparkjava:spark-core:2.7.1'
+    compile 'com.sparkjava:spark-template-velocity:2.7.1'
+    compile 'org.slf4j:slf4j-simple:1.7.25'
+    compile 'net.codebox:homoglyph:1.1.1'
+//    compile 'org.apache.velocity:velocity-engine-core:2.0'
+    compile "net.dv8tion:JDA:$jdaVersion"
+}
+
+task initVersion {
+    def config = new Properties()
+    config.load(new FileInputStream("config.properties"))
+
+    version = config.get("version")
+}
+
+task generateProcfile {
+    def output = new File("Procfile")
+    output.write("worker: java -cp build/libs/" + actualProjectName + "-" + version + "-all.jar ChickpeaBot" +
+            "\nweb: java -cp build/libs/" + actualProjectName + "-" + version + "-all.jar www.SparkBootloader")
+}
+
+task clearLibsFolder(type: Delete) {
+    delete fileTree(dir: libsDir)
+}
+
+task stage(dependsOn: [initVersion, build, shadowJar, generateProcfile])
+
